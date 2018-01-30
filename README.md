@@ -17,7 +17,7 @@ Some works based on training method used in SeqGAN:
    * Python 2.7
    * Tensorflow 1.3
 ## Run the code
-Simplt run `python train.py` will start the training process. It will first pretrain the generator and discriminator then start adversarial training.
+Simply run `python train.py` will start the training process. It will first pretrain the generator and discriminator then start adversarial training.
 
 ## Results
 The output in experiment.log would be something similar to below:
