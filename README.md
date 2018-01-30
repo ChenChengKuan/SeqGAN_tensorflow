@@ -80,3 +80,4 @@ epoch:	140	nll:	8.69793
 epoch:	145	nll:	8.67705
 epoch:	150	nll:	8.65372
 ```
+Note: Part of this code (dataloader, discriminator, target LSTN) is based on [original implementation by Lantao Yu](https://github.com/LantaoYu/SeqGAN). Many thanks to his code
