@@ -3,8 +3,15 @@
 This code is used to reproduce the result of synthetic data experiments in "SeqGAN: Sequence Generative Adversarial Nets with Policy Gradient" (Yu et.al). It replaces the original tensor array implementation by higher level tensorflow API for better flexibility.
 
 ## Introduction
-The baisc idea of SeqGAN is to regard sequence generator as an agent in reinforcement learning. To train this agent, it applies REINFORCE algorithm to train the generator and a discriminator is trained to provide the reward. To calculate the reward of partially generated sequence, Monte-Carlo sampling is used to rollout the unfinished sequence to get the estimated reward.
+The baisc idea of SeqGAN is to regard sequence generator as an agent in reinforcement learning. To train this agent, it applies REINFORCE (Williams, 1992) algorithm to train the generator and a discriminator is trained to provide the reward. To calculate the reward of partially generated sequence, Monte-Carlo sampling is used to rollout the unfinished sequence to get the estimated reward.
 ![seqgan](https://github.com/ChenChengKuan/SeqGAN_tensorflow/blob/master/misc/seqgan.png)
+
+Some works based on training method used in SeqGAN:
+   * Recurrent Topic-Transition GAN for Visual Paragraph Generation (Liang et.al, ICCV 2017)
+   * Towards Diverse and Natural Image Descriptions via a Conditional GAN (Dai et.al, ICCV 2017)
+   * Show, Adapt and Tell: Adversarial Training of Cross-domain Image Captioner (Chen et.al, ICCV 2017)
+   * Adversarial Ranking for Language Generation (Lin et.al, NIPS 2017)
+   * Long Text Generation via Adversarial Training with Leaked Information (Guo et.al, AAAI 2018)
 
 ## Prerequisites
    * Python 2.7
