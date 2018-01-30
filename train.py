@@ -121,7 +121,6 @@ def main(unused_argv):
                     reward_tmp.append(reward_allseq[range(r, config_gen.gen_batch_size * config_gen.sequence_length, config_gen.gen_batch_size)])
                 reward_rollout.append(np.array(reward_tmp))
             rewards = np.sum(reward_rollout, axis=0)/config_train.rollout_num
-            #rewards_summary = np.sum(rewards_masked) / np.sum(predict_words_mask[:,1:])
             _, gen_loss = sess.run([train_adv_update, generator.gen_loss_adv], feed_dict={generator.input_seqs_adv:samples,\
                                                                                         generator.rewards:rewards})
         if total_batch % config_train.test_per_epoch == 0 or total_batch == config_train.total_batch - 1:
@@ -131,6 +130,7 @@ def main(unused_argv):
             buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
             print 'total_batch: ', total_batch, 'test_loss: ', test_loss
             log.write(buffer)
+
         for _ in range(config_train.dis_update_time_adv):
             generate_samples(sess, generator, config_train.batch_size, config_train.generated_num, config_train.negative_file)
             dis_data_loader.load_train_data(config_train.positive_file, config_train.negative_file)
