@@ -12,6 +12,7 @@ from generator import Generator
 from rollout import rollout
 from target_lstm import TARGET_LSTM
 
+#Hardware related setting
 config_hardware = tf.ConfigProto()
 config_hardware.gpu_options.per_process_gpu_memory_fraction = 0.40
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -23,34 +24,42 @@ def main(unused_argv):
     np.random.seed(config_train.seed)
     assert config_train.start_token == 0
 
+    #Build dataloader for generaotr, testing and discriminator
     gen_data_loader = Gen_Data_loader(config_gen.gen_batch_size)
-    likelihood_data_loader = Gen_Data_loader(config_gen.gen_batch_size) # For testing
+    likelihood_data_loader = Gen_Data_loader(config_gen.gen_batch_size)
     dis_data_loader = Dis_dataloader(config_dis.dis_batch_size)
 
+    #Build generator and its rollout
     generator = Generator(config=config_gen)
     generator.build()
     rollout_gen = rollout(config=config_gen)
 
+    #Build target LSTM
     target_params = cPickle.load(open('save/target_params.pkl'))
     target_lstm = TARGET_LSTM(config=config_gen, params=target_params) # The oracle model
 
+    #Build discriminator
     discriminator = Discriminator(config=config_dis)
     discriminator.build_discriminator()
 
+    #Build optimizer op for pretraining
     pretrained_optimizer = tf.train.AdamOptimizer(config_train.gen_learning_rate)
-    var_pretrained = [v for v in tf.trainable_variables() if 'teller' in v.name]
+    var_pretrained = [v for v in tf.trainable_variables() if 'teller' in v.name] #Using name 'teller' here to prevent name collision of target LSTM
     gradients, variables = zip(*pretrained_optimizer.compute_gradients(generator.pretrained_loss, var_list=var_pretrained))
     gradients, _ = tf.clip_by_global_norm(gradients, config_train.grad_clip)
     gen_pre_upate = pretrained_optimizer.apply_gradients(zip(gradients, variables))
 
+    #Initialize all variables
     sess = tf.Session(config=config_hardware)
     sess.run(tf.global_variables_initializer())
 
+    #Initalize data loader of generator
     generate_samples(sess, target_lstm, config_train.batch_size, config_train.generated_num, config_train.positive_file)
     gen_data_loader.create_batches(config_train.positive_file)
 
+    #Start pretraining
     log = open('save/experiment-log.txt', 'w')
-    print 'Start pre-training...'
+    print 'Start pre-training generator...'
     log.write('pre-training...\n')
     for epoch in xrange(config_train.pretrained_epoch_num):
         gen_data_loader.reset_pointer()
@@ -67,7 +76,6 @@ def main(unused_argv):
             log.write(buffer)
 
     print 'Start pre-training discriminator...'
-    # Train 3 epoch on the generated data and do this for 50 times
     for t in range(config_train.dis_update_time_pre):
         print "Times: " + str(t)
         generate_samples(sess, generator, config_train.batch_size, config_train.generated_num, config_train.negative_file)
@@ -82,16 +90,19 @@ def main(unused_argv):
                     discriminator.dropout_keep_prob: config_dis.dis_dropout_keep_prob
                 }
                 _ = sess.run(discriminator.train_op, feed)
-
+    
+    #Build optimizer op for adversarial training
     train_adv_opt = tf.train.AdamOptimizer(config_train.gen_learning_rate)
     gradients, variables = zip(*train_adv_opt.compute_gradients(generator.gen_loss_adv,var_list=var_pretrained))
     gradients, _ = tf.clip_by_global_norm(gradients, config_train.grad_clip)
     train_adv_update = train_adv_opt.apply_gradients(zip(gradients, variables))
 
+    #Initialize global variables of optimizer for adversarial training
     uninitialized_var = [e for e in tf.global_variables() if e not in tf.trainable_variables()]
     init_vars_uninit_op = tf.variables_initializer(uninitialized_var)
     sess.run(init_vars_uninit_op)
 
+    #Start adversarial training
     for total_batch in xrange(config_train.total_batch):
         for iter_gen in xrange(config_train.gen_update_time):
             samples = sess.run(generator.sample_word_list_reshape)
