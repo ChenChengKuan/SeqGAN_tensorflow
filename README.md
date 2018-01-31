@@ -20,7 +20,7 @@ Some works based on training method used in SeqGAN:
 Simply run `python train.py` will start the training process. It will first pretrain the generator and discriminator then start adversarial training.
 
 ## Results
-The output in experiment.log would be something similar to below, which is close reported result in [original implementation](https://github.com/LantaoYu/SeqGAN)
+The output in experiment.log would be something similar to below, which is close to reported result in [original implementation](https://github.com/LantaoYu/SeqGAN)
 ```
 pre-training...
 epoch:	0	nll:	10.1971
